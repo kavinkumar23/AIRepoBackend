@@ -5,7 +5,6 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET);
 const admin = require("firebase-admin");
 const { OpenAI } = require("openai");
 const db = require("./db");
-
 const app = express();
 process.on("uncaughtException", (err) => {
   console.error("🔥 Uncaught Exception:", err);
@@ -120,10 +119,6 @@ async function verifyUser(req, res, next) {
     // return res.status(401).send("Invalid token");
   }
 }
-
-/* ==========================
-   SYNC USER
-========================== */
 app.post("/auth/sync-user", verifyUser, async (req, res) => {
   try {
     const { uid, email, name } = req.user;
@@ -144,10 +139,6 @@ app.post("/auth/sync-user", verifyUser, async (req, res) => {
     res.status(500).send(err.message);
   }
 });
-
-/* ==========================
-   STRIPE CHECKOUT
-========================== */
 app.post("/create-checkout-session", async (req, res) => {
   try {
     const { plan } = req.body;
@@ -175,10 +166,6 @@ app.post("/create-checkout-session", async (req, res) => {
     res.status(500).json({ error: err.message }); // ✅ always JSON
   }
 });
-
-/* ==========================
-   VERIFY ACCESS
-========================== */
 app.get("/verify", verifyUser, async (req, res) => {
   try {
     console.log("Verifying access for user:", req.user.uid);
@@ -195,10 +182,6 @@ app.get("/verify", verifyUser, async (req, res) => {
     res.json({ access: false });
   }
 });
-
-/* ==========================
-   SUMMARIZE (OPENAI)
-========================== */
 app.post("/summarize", verifyUser, async (req, res) => {
   try {
     const result = await db.query(
@@ -209,10 +192,7 @@ app.post("/summarize", verifyUser, async (req, res) => {
     if (!result.rows[0]?.subscribed) {
       return res.status(403).send("Please purchase access");
     }
-
     const { text } = req.body;
-
-
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -233,14 +213,6 @@ app.post("/summarize", verifyUser, async (req, res) => {
     res.status(500).send(err.message);
   }
 });
-
-/* ==========================
-   STRIPE WEBHOOK (MUST BE RAW)
-========================== */
-
-/* ==========================
-   START SERVER
-========================== */
 app.listen(5050, () => {
   console.log("🚀 Server running on http://localhost:5050");
 });
