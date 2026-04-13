@@ -9,7 +9,6 @@ const app = express();
 process.on("uncaughtException", (err) => {
   console.error("🔥 Uncaught Exception:", err);
 });
-
 process.on("unhandledRejection", (err) => {
   console.error("🔥 Unhandled Rejection:", err);
 });
@@ -18,9 +17,7 @@ app.post(
   express.raw({ type: "application/json" }),
   async (req, res) => {
     const sig = req.headers["stripe-signature"];
-
     let event;
-
     try {
       event = stripe.webhooks.constructEvent(
         req.body,
@@ -53,40 +50,28 @@ app.post(
     }
   }
 );
-
 app.use(express.json());
-
-/* ==========================
-   LOGGING
-========================== */
 app.use((req, res, next) => {
   console.log("➡️", req.method, req.url);
   next();
 });
-
-/* ==========================
-   CORS (DEV SAFE)
-========================== */
 app.use(
   cors({
     origin: true,
     credentials: true,
   })
 );
-
-/* ==========================
-   HEALTH CHECK (FIRST TEST ROUTE)
-========================== */
 app.get("/", (req, res) => {
   res.send("Backend running 🚀");
 });
-
-/* ==========================
-   FIREBASE INIT (SAFE CHECK)
-========================== */
 try {
+  // admin.initializeApp({
+  //   credential: admin.credential.cert(require("./firebase-key.json")),
+  // });
   admin.initializeApp({
-    credential: admin.credential.cert(require("./firebase-key.json")),
+    credential: admin.credential.cert(
+      JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
+    ),
   });
   console.log("✅ Firebase initialized");
 } catch (err) {
@@ -146,7 +131,6 @@ app.post("/create-checkout-session", async (req, res) => {
       plan === "yearly"
         ? "price_1TLTuQK3YOgc54pJprgITfCB"
         : "price_1TLTv0K3YOgc54pJDMz3Erc3";
-
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
@@ -159,7 +143,6 @@ app.post("/create-checkout-session", async (req, res) => {
       success_url: "http://localhost:3000/success",
       cancel_url: "http://localhost:3000/cancel",
     });
-
     res.json({ url: session.url });
   } catch (err) {
     console.error("❌ Stripe error:", err);
