@@ -90,6 +90,7 @@ const openai = new OpenAI({
 ========================== */
 async function verifyUser(req, res, next) {
   try {
+    console.log("🔍 Authorization Header:", req.headers.authorization);
     const authHeader = req.headers.authorization;
     console.log("🔍 Verifying user with header:", authHeader);
     if (!authHeader?.startsWith("Bearer ")) {
@@ -101,14 +102,14 @@ async function verifyUser(req, res, next) {
     next();
   } catch (err) {
     console.log("VERIFY ERROR:", err.message);
-    // return res.status(401).send("Invalid token");
+    return res.status(401).send("Invalid token");
   }
 }
 app.post("/auth/sync-user", verifyUser, async (req, res) => {
   try {
+    console.log("🔥 HIT /auth/sync-user");
     const { uid, email, name } = req.user;
-
-    await db.query(
+    const result = await db.query(
       `
       INSERT INTO users (firebase_uid, email, name)
       VALUES ($1, $2, $3)
@@ -117,8 +118,10 @@ app.post("/auth/sync-user", verifyUser, async (req, res) => {
       `,
       [uid, email || "", name || ""]
     );
-
     res.json({ success: true });
+    console.log("🧾 DB RESULT:", result);
+    console.log("✅ User synced to DB:", uid);
+    console.log("User details - Email:", email, "Name:", name);
   } catch (err) {
     console.error("SYNC ERROR:", err);
     res.status(500).send(err.message);
