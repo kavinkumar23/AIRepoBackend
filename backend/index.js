@@ -108,6 +108,8 @@ async function verifyUser(req, res, next) {
 app.post("/auth/sync-user", verifyUser, async (req, res) => {
   try {
     console.log("🔥 HIT /auth/sync-user");
+    const test = await db.query("SELECT NOW()");
+    console.log("DB TIME:", test.rows);
     const { uid, email, name } = req.user;
     const result = await db.query(
       `
