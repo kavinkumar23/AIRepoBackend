@@ -8,6 +8,4 @@ const pool = new Pool({
   port: 5432,
 });
 console.log("DB HOST:", process.env.DATABASE_URL);
-const test = await db.query("SELECT NOW()");
-console.log("DB TIME:", test.rows);
 module.exports = pool;
