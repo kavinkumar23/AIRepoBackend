@@ -7,5 +7,7 @@ const pool = new Pool({
   password: process.env.PG_PASSWORD,
   port: 5432,
 });
-
+console.log("DB HOST:", process.env.DATABASE_URL);
+const test = await db.query("SELECT NOW()");
+console.log("DB TIME:", test.rows);
 module.exports = pool;
