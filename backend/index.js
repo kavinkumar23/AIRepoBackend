@@ -131,6 +131,7 @@ app.post("/auth/sync-user", verifyUser, async (req, res) => {
 });
 app.post("/create-checkout-session", async (req, res) => {
   try {
+    console.log("🔥 HIT /create-checkout-session with body:", req.body);
     const { plan } = req.body;
     const priceId =
       plan === "yearly"
@@ -145,6 +146,9 @@ app.post("/create-checkout-session", async (req, res) => {
           quantity: 1,
         },
       ],
+      metadata: {
+        userId: userId, // 👈 REQUIRED
+      },
       success_url: "http://localhost:3000/success",
       cancel_url: "http://localhost:3000/cancel",
     });
